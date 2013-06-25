@@ -12,6 +12,7 @@ use DateTime;
 use DateTime::Format::ISO8601;
 use File::Slurp;
 use Net::Amazon::EC2;
+use LWP::Simple;
 
 #---- OPTIONS ----
 
@@ -19,6 +20,7 @@ my $Help                       = 0;
 my $Debug                      = 0;
 my $Quiet                      = 0;
 my $Noaction                   = 0;
+my $AutoDiscover               = 0;
 
 my $aws_access_key_id          = $ENV{AWS_ACCESS_KEY_ID};
 my $aws_secret_access_key      = $ENV{AWS_SECRET_ACCESS_KEY};
@@ -47,6 +49,7 @@ GetOptions(
   'debug'                        => \$Debug,
   'quiet'                        => \$Quiet,
   'noaction'                     => \$Noaction,
+  'auto-discover|a'              => \$AutoDiscover,
 
   'aws-access-key-id=s'          => \$aws_access_key_id,
   'aws-secret-access-key=s'      => \$aws_secret_access_key,
@@ -73,7 +76,6 @@ my $filesystem_frozen = 0;
 pod2usage(1) if $Help;
 
 my @volume_ids = @ARGV;
-pod2usage(2) unless scalar @volume_ids;
 
 $ec2_endpoint ||= "https://ec2.$region.amazonaws.com" if $region;
 
@@ -110,6 +112,14 @@ my $ec2 = Net::Amazon::EC2->new(
     ($ec2_endpoint ? (base_url => $ec2_endpoint) : ()),
     # ($Debug ? (debug => 1) : ()),
 );
+
+# Autodetect mounted volume ids and add them to the given volume ids
+ebs_discover(\@volume_ids, $ec2) if $AutoDiscover;
+
+print @volume_ids;
+exit 0;
+
+pod2usage(2) unless scalar @volume_ids;
 
 my $snapshots_for_volumes = snapshots_for_volumes($ec2);
 for my $volume_id ( @volume_ids ) {
@@ -185,6 +195,30 @@ sub snapshots_for_volumes {
     return $snapshots_for_volumes;
 }
 
+#
+# Auto discover instance mounted volumes
+#
+sub ebs_discover {
+  my ($volume_ids, $ec2) = @_;
+  
+  $Debug and warn "$Prog: ", scalar localtime, ": auto discovering instance id\n";
+  
+  # Get current instance id using local endpoint http://169.254.169.254/latest/meta-data/instance-id
+  my $instance_id = get("http://169.254.169.254/latest/meta-data/instance-id");
+  
+  $Debug and warn "$Prog: ", scalar localtime, ": current instance id is: $instance_id\n";
+    
+  # Get mounted volumes
+  my $response = $ec2->describe_instance_attribute( InstanceId => $instance_id, Attribute => 'blockDeviceMapping');
+  
+  # Add discovered volume ids to given volume ids which should be an empty array
+  foreach my $device (@{$response->block_device_mapping}) {
+    $Debug and warn "$Prog: ", scalar localtime, ": found volume " . $device->ebs->volume_id . " with device name " . $device->device_name . "\n";
+    push(@$volume_ids, $device->ebs->volume_id);
+  }
+  
+  return 1;
+}
 
 # Do the expiration for a single volume
 sub expire_snapshots_for_volume {
