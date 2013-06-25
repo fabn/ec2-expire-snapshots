@@ -14,10 +14,11 @@ h1. OPTIONS
 - @-d@ @--debug@ := Debug mode.
 - @-q@ @--quiet@ := Quiet mode.
 - @-n@ @--noaction@ := Don't do it. Just say what you would have done.
+- @-a@ @--auto-discovery@ := Enable auto discovery of mounted volume-ids for current instance.
 - @--aws-access-key-id KEY@ := - @--aws-secret-access-key SECRET@ := Amazon AWS access key and secret access key. Defaults to environment variables or .awssecret file contents described below.
 - @--aws-access-key-id-file KEYFILE@ := - @--aws-secret-access-key-file SECRETFILE@ := Files containing Amazon AWS access key and secret access key. Defaults to environment variables or .awssecret file contents described below.
 - @--aws-credentials-file CREDENTIALSFILE@ := File containing both the Amazon AWS access key and secret access key on separate lines and in that order. Defaults to contents of $AWS_CREDENTIALS environment variable or the value $HOME/.awssecret
-- @--region REGION@ := Specify a different EC2 region like "eu-west-1". Defaults to "us-east-1".
+- @--region REGION@ := Specify a different EC2 region like "eu-west-1". Defaults to $AWS_DEFAULT_REGION environment variable of "us-east-1" if empty.
 - @--keep-most-recent COUNT@ := - @--keep-all-since DATETIME@ [NOT YET IMPLEMENTED] := - @--keep-first-yearly YEARCOUNT@ := - @--keep-first-quarterly QUARTERCOUNT@ [NOT YET IMPLEMENTED] := - @--keep-first-monthly MONTHCOUNT@ := - @--keep-first-weekly WEEKCOUNT@ := - @--week-starts DAYOFWEEK@ [NOT YET IMPLEMENTED] := - @--keep-first-daily DAYCOUNT@ := - @--keep-first-hourly HOURCOUNT@ := - @--expiration-tag-name TAGNAME@ [NOT YET IMPLEMENTED] := - @--expiration-tag-optional@ [NOT YET IMPLEMENTED] := These options identify which EBS snapshots should be preserved. See the "PRESERVATION OPTIONS" section for more details on what they mean and how to use them.
 - @--force-delete-all@ := This dangerous option overrides all other default option values, EBS snapshot tag values, and normal safety measures. All EBS snapshots for the specified EBS volumes are attemped to be deleted. Even the most recent EBS snapshot is deleted. The EBS snapshots are deleted even if the EBS volume does not exist. After this option is used, you will have no EBS snapshots for the specified EBS volume, unless there was some error condition that prevented an EBS snapshot from being deleted.
 This is not a normal EBS snapshot expiration strategy, but is a convenience option for use when throwing away all data associated with an EBS volume that is no longer useful for any purpose.
@@ -169,6 +170,14 @@ This simple example saves the most recent 10 snapshots:
  ec2-expire-snapshots                   \
      --keep-most-recent 10              \
      vol-11111111
+</pre>
+
+This example saves the most recent 10 snapshots for all used volumes using auto discovery
+
+<pre>
+ ec2-expire-snapshots                   \
+     --keep-most-recent 10              \
+     --auto-discovery
 </pre>
 
 This example saves the last 7 days of snapshots: [NOT YET IMPLEMENTED]
