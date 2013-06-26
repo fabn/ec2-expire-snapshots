@@ -116,9 +116,6 @@ my $ec2 = Net::Amazon::EC2->new(
 # Autodetect mounted volume ids and add them to the given volume ids
 ebs_discover(\@volume_ids, $ec2) if $AutoDiscover;
 
-print @volume_ids;
-exit 0;
-
 pod2usage(2) unless scalar @volume_ids;
 
 my $snapshots_for_volumes = snapshots_for_volumes($ec2);
