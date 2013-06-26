@@ -14,7 +14,7 @@ h1. OPTIONS
 - @-d@ @--debug@ := Debug mode.
 - @-q@ @--quiet@ := Quiet mode.
 - @-n@ @--noaction@ := Don't do it. Just say what you would have done.
-- @-a@ @--auto-discovery@ := Enable auto discovery of mounted volume-ids for current instance.
+- @-a@ @--auto-discover@ := Enable auto discovery of mounted volume-ids for current instance.
 - @--aws-access-key-id KEY@ := - @--aws-secret-access-key SECRET@ := Amazon AWS access key and secret access key. Defaults to environment variables or .awssecret file contents described below.
 - @--aws-access-key-id-file KEYFILE@ := - @--aws-secret-access-key-file SECRETFILE@ := Files containing Amazon AWS access key and secret access key. Defaults to environment variables or .awssecret file contents described below.
 - @--aws-credentials-file CREDENTIALSFILE@ := File containing both the Amazon AWS access key and secret access key on separate lines and in that order. Defaults to contents of $AWS_CREDENTIALS environment variable or the value $HOME/.awssecret
@@ -177,7 +177,7 @@ This example saves the most recent 10 snapshots for all used volumes using auto 
 <pre>
  ec2-expire-snapshots                   \
      --keep-most-recent 10              \
-     --auto-discovery
+     --auto-discover
 </pre>
 
 This example saves the last 7 days of snapshots: [NOT YET IMPLEMENTED]
