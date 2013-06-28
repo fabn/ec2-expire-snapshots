@@ -43,6 +43,10 @@ my $keep_all_since             = undef;
 my $expiration_tag_name        = undef;
 my $expiration_tag_optional    = undef;
 
+# Used to silence warnings, ec2 library has some warnings not guarded by any condition
+my $silenceWarnings            = 0;
+BEGIN { $SIG{'__WARN__'} = sub { warn $_[0] unless $silenceWarnings } }
+
 Getopt::Long::config('no_ignore_case');
 GetOptions(
   'help|?'                       => \$Help,
@@ -206,7 +210,9 @@ sub ebs_discover {
   $Debug and warn "$Prog: ", scalar localtime, ": current instance id is: $instance_id\n";
     
   # Get mounted volumes
+  $silenceWarnings = 1;
   my $response = $ec2->describe_instance_attribute( InstanceId => $instance_id, Attribute => 'blockDeviceMapping');
+  $silenceWarnings = 0;
   
   # Add discovered volume ids to given volume ids which should be an empty array
   foreach my $device (@{$response->block_device_mapping}) {
